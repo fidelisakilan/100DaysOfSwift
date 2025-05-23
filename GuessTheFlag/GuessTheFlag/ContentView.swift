@@ -9,13 +9,17 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Button {
+            print("Button was pressed")
+        } label: {
+            Label("Edit", systemImage: "pencil")
+                .foregroundStyle(.white)
+                .background(.red)
         }
-        .padding()
+    }
+    func executeDelet() {
+        print("Now deleting...")
+        
     }
 }
 
