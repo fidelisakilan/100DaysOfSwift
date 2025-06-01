@@ -78,6 +78,7 @@ struct GridStack<Content: View> : View {
 
 struct ContentView: View {
     var body: some View {
+        CapsuleText(text: "Hello")
         Text("Hello, World")
             .titleStyle()
         Color.blue
