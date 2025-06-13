@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  GuessTheFlag
-//
-//  Created by Fidelis Akilan on 5/23/25.
-//
-
 import SwiftUI
 
 struct ContentView:View {
@@ -14,7 +7,7 @@ struct ContentView:View {
     @State private var scoreTitle = ""
     @State private var score = 0
     @State private var tappedNumber = 0
-    
+    @State private var activeFlag = 999
     var body: some View {
         ZStack {
             RadialGradient(stops: [
@@ -37,13 +30,22 @@ struct ContentView:View {
                             .font(.largeTitle.weight(.semibold))
                     }
                     ForEach(0..<3) { number in
+                        let rotation = activeFlag == number ? 360.0 : 0.0
+                        let opacity = activeFlag == 999 || activeFlag == number ? 1.0 : 0.25
                         Button {
-                            flagTapped(number)
+                            withAnimation(.linear(duration: 1)) {
+                                activeFlag = number
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                flagTapped(number)
+                            }
                         } label: {
                             Image(countries[number])
                                 .clipShape(.capsule)
                                 .shadow(radius: 5)
                         }
+                        .rotation3DEffect(.degrees(rotation), axis: (x:0, y: 1, z: 0))
+                        .opacity(opacity)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -64,9 +66,9 @@ struct ContentView:View {
             Button("Reset",role: .destructive,action: reset)
         } message: {
             Text("""
-"Wrong! That's flag of \(countries[tappedNumber])"
-Your score is \(score)
-""")
+            Wrong! That's flag of \(countries[tappedNumber])
+            Your score is \(score)
+            """)
         }
     }
     
@@ -81,12 +83,14 @@ Your score is \(score)
             showingScore = true
         }
     }
+    
     func reset() {
         askQuestion()
         score = 0
     }
     
     func askQuestion() {
+        activeFlag = 999
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }

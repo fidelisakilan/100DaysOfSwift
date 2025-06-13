@@ -721,6 +721,8 @@ if let user = try? getUser(id: 0) {
 
 let user = (try? getUser(id: 0)) ?? "N/A"
 
+let user20 = try getUser(id: 0)
+
 func getRandomFromList(list: [Int]?) -> Int {
     list?.randomElement() ?? Int.random(in: 1...100)
 }
