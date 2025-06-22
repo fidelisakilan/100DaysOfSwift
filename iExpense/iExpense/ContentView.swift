@@ -4,26 +4,88 @@
 //
 //  Created by Fidelis Akilan on 6/21/25.
 //
-import Observation
 import SwiftUI
 
-
-struct User: Codable {
-    var firstName: String
-    var lastName: String
+struct ExpenseItem: Identifiable, Codable {
+    var id = UUID()
+    var name: String
+    var type: String
+    var amount: Double
 }
 
-struct ContentView: View {
-    @State private var user = User(firstName: "Maruti", lastName: "Swift")
-    var body: some View {
-        Button("Tap me to save") {
-            let encoder = JSONEncoder()
-            if let data = try? encoder.encode(user) {
-                UserDefaults.standard.set(data, forKey: "UserData")
+@Observable
+class Expenses {
+    init() {
+        if let encodedItems = UserDefaults.standard.data(forKey: "Items") {
+            if let decodedItems = try? JSONDecoder().decode([ExpenseItem].self, from: encodedItems) {
+                items = decodedItems
+                return
+            }
+            items = []
+        }
+    }
+    
+    var items = [ExpenseItem]() {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(items) {
+                UserDefaults.standard.set(encoded, forKey: "Items")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "Items")
             }
         }
     }
 }
+
+struct ContentView : View {
+    @State var expenses = Expenses()
+    @State var showingAddExpense = false
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(expenses.items) { item in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(item.name).font(.headline)
+                            Text(item.type).font(.caption)
+                        }
+                        Spacer()
+                        Text(item.amount,format: .currency(code: "USD"))
+                    }
+                }
+                .onDelete(perform: onDelete)
+            }
+            .navigationTitle("iExpense")
+            .toolbar {
+                Button("Add Expense",systemImage: "plus") {
+                    showingAddExpense = true
+                }
+            }
+            .sheet(isPresented: $showingAddExpense) {
+                AddView(expenses: expenses)
+            }
+        }
+    }
+    func onDelete(at offsets: IndexSet) {
+        expenses.items.remove(atOffsets: offsets)
+    }
+}
+
+//struct User: Codable {
+//    var firstName: String
+//    var lastName: String
+//}
+//
+//struct ContentView: View {
+//    @State private var user = User(firstName: "Maruti", lastName: "Swift")
+//    var body: some View {
+//        Button("Tap me to save") {
+//            let encoder = JSONEncoder()
+//            if let data = try? encoder.encode(user) {
+//                UserDefaults.standard.set(data, forKey: "UserData")
+//            }
+//        }
+//    }
+//}
 
 
 
@@ -61,7 +123,7 @@ struct ContentView: View {
 //            }
 //        }
 //    }
-//    
+//
 //    func onDelete(at offsets: IndexSet) {
 //        listOfNumbers.remove(atOffsets: offsets)
 //    }
