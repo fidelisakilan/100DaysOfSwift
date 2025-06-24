@@ -11,12 +11,16 @@ struct ExpenseItem: Identifiable, Codable {
     var name: String
     var type: String
     var amount: Double
+    var currency: String
 }
 
 @Observable
 class Expenses {
-    init() {
-        if let encodedItems = UserDefaults.standard.data(forKey: "Items") {
+    var key: String
+    
+    init(key: String) {
+        self.key = key
+        if let encodedItems = UserDefaults.standard.data(forKey: self.key) {
             if let decodedItems = try? JSONDecoder().decode([ExpenseItem].self, from: encodedItems) {
                 items = decodedItems
                 return
@@ -28,31 +32,68 @@ class Expenses {
     var items = [ExpenseItem]() {
         didSet {
             if let encoded = try? JSONEncoder().encode(items) {
-                UserDefaults.standard.set(encoded, forKey: "Items")
+                UserDefaults.standard.set(encoded, forKey: key)
             } else {
-                UserDefaults.standard.removeObject(forKey: "Items")
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+    }
+}
+
+struct ExpenseTileView: View {
+    var item: ExpenseItem
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text(item.name).font(.headline)
+                Text(item.type).font(.caption)
+            }
+            Spacer()
+            if item.amount <= 10 {
+                Text(item.amount,format: .currency(code: item.currency))
+                    .foregroundColor(.black)
+                    .fontWeight(.bold)
+            } else if item.amount <= 100 {
+                Text(item.amount,format: .currency(code: item.currency))
+                    .foregroundColor(.yellow)
+                    .fontWeight(.bold)
+            } else{
+                Text(item.amount,format: .currency(code: item.currency))
+                    .foregroundColor(.red)
+                    .fontWeight(.bold)
             }
         }
     }
 }
 
 struct ContentView : View {
-    @State var expenses = Expenses()
+    @State var personalExpenses = Expenses(key: "personalItems")
+    @State var businessExpenses = Expenses(key: "businessItems")
+    
     @State var showingAddExpense = false
     var body: some View {
         NavigationStack {
             List {
-                ForEach(expenses.items) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.name).font(.headline)
-                            Text(item.type).font(.caption)
+                if !personalExpenses.items.isEmpty {
+                    Section("Personal") {
+                        ForEach(personalExpenses.items) { item in
+                            ExpenseTileView(item: item)
                         }
-                        Spacer()
-                        Text(item.amount,format: .currency(code: "USD"))
+                        .onDelete { offsets in
+                            onDelete(at: offsets, expenses: personalExpenses)
+                        }
                     }
                 }
-                .onDelete(perform: onDelete)
+                if !businessExpenses.items.isEmpty {
+                    Section("Work") {
+                        ForEach(businessExpenses.items) { item in
+                            ExpenseTileView(item: item)
+                        }
+                        .onDelete { offsets in
+                            onDelete(at: offsets, expenses: businessExpenses)
+                        }
+                    }
+                }
             }
             .navigationTitle("iExpense")
             .toolbar {
@@ -61,11 +102,11 @@ struct ContentView : View {
                 }
             }
             .sheet(isPresented: $showingAddExpense) {
-                AddView(expenses: expenses)
+                AddView(personalExpenses: personalExpenses, businessExpenses: businessExpenses)
             }
         }
     }
-    func onDelete(at offsets: IndexSet) {
+    func onDelete(at offsets: IndexSet, expenses: Expenses) {
         expenses.items.remove(atOffsets: offsets)
     }
 }
