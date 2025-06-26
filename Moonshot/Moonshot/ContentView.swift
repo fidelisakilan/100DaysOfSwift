@@ -8,19 +8,68 @@
 import SwiftUI
 
 struct ContentView: View {
-    let rows = [
-        GridItem(.adaptive(minimum: 60, maximum: 120))
+    let astronauts: [String: Astronaut] = Bundle.main.decode(file: "astronauts.json")
+    let missions: [Mission] = Bundle.main.decode(file: "missions.json")
+    let columns = [
+        GridItem(.adaptive(minimum: 120))
     ]
     var body: some View {
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: rows) {
-                ForEach(0..<1000) {
-                    Text("\($0)")
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns) {
+                    ForEach(missions) { mission in
+                        NavigationLink{
+                            Text("Detail View")
+                        } label: {
+                            VStack {
+                                Image(mission.logoName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 100, height: 100)
+                                    .padding()
+                                VStack {
+                                    Text(mission.displayName)
+                                        .font(.caption)
+                                        .foregroundStyle(.white)
+                                    Text(mission.formattedLaunchDate)
+                                        .font(.caption2)
+                                        .foregroundStyle(.gray)
+                                }
+                                .padding(.vertical)
+                                .frame(maxWidth: .infinity)
+                                .background(.lightBg)
+                            }
+                            .clipShape(.rect(cornerRadius: 10))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(.lightBg)
+                            }
+                        }
+                    }
                 }
+                .padding([.horizontal, .bottom])
             }
+            .navigationTitle("MoonShot")
+            .background(.darkBg)
+            .preferredColorScheme(.dark)
         }
     }
 }
+
+//struct ContentView: View {
+//    let rows = [
+//        GridItem(.adaptive(minimum: 60, maximum: 120))
+//    ]
+//    var body: some View {
+//        ScrollView(.horizontal) {
+//            LazyHGrid(rows: rows) {
+//                ForEach(0..<1000) {
+//                    Text("\($0)")
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 //struct User : Codable {
