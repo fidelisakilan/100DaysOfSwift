@@ -40,15 +40,32 @@ import SwiftUI
 struct DetailsView : View {
     var number: Int
     @Binding var path: NavigationPath
+    @State var title: String
+    
+    init(number: Int, path: Binding<NavigationPath>) {
+        self.number = number
+        self._path = path
+        self._title = State(initialValue: "\(number)")
+    }
+    
     var body: some View {
-        NavigationLink("Tap for a random number", value: Int.random(in: 1...1000))
-            .navigationTitle("\(number)")
-            .toolbar {
-                Button("HOME") {
-                    path = NavigationPath()
+        VStack {
+            List {
+                ForEach(0..<100) { i in
+                    Text("\(i)")
                 }
             }
-        
+            NavigationLink("Tap for a random number", value: Int.random(in: 1...1000))
+        }
+        .navigationTitle($title)
+        .toolbar {
+        Button("HOME") {
+            path = NavigationPath()
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.blue, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
 
