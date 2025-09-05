@@ -16,7 +16,7 @@ struct ExpenseItem: Identifiable, Codable {
 
 @Observable
 class Expenses {
-    var key: String
+var key: String
     
     init(key: String) {
         self.key = key
@@ -25,8 +25,8 @@ class Expenses {
                 items = decodedItems
                 return
             }
-            items = []
         }
+        items = []
     }
     
     var items = [ExpenseItem]() {
