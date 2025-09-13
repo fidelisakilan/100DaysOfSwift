@@ -12,7 +12,7 @@ struct ContentView: View {
                             Text(Order.types[$0])
                         }
                     }
-                    Stepper("Number of cakes: \(order.quantity)", value: $order.quantity)
+                    Stepper("Number of cakes: \(order.quantity)", value: $order.quantity,in: 1...10)
                 }
                 Section {
                     Toggle("Any special requests?",isOn: $order.specialRequestEnabled)
