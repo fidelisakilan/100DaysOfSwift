@@ -10,6 +10,12 @@ import Foundation
 @Observable
 class Order : Codable {
     
+    init() {
+        streetAddress = UserDefaults.standard.string(forKey: "order_address") ?? ""
+        city = UserDefaults.standard.string(forKey: "order_city") ?? ""
+        zip = UserDefaults.standard.string(forKey: "order_zip") ?? ""
+    }
+    
     enum CodingKeys: String, CodingKey {
         case _type = "type"
         case _quantity = "quantity"
@@ -39,12 +45,42 @@ class Order : Codable {
     var addSprinkles = false
     
     var name = ""
-    var streetAddress = ""
-    var city = ""
-    var zip = ""
+    var streetAddress: String {
+        didSet {
+            if streetAddress.trimmingCharacters(in: .whitespaces).isEmpty {
+                UserDefaults.standard.removeObject(forKey: "order_address")
+            } else {
+                UserDefaults.standard.set(streetAddress, forKey: "order_address")
+            }
+        }
+    }
+    
+    var city: String {
+        didSet {
+            if city.trimmingCharacters(in: .whitespaces).isEmpty {
+                UserDefaults.standard.removeObject(forKey: "order_city")
+            } else {
+                UserDefaults.standard.set(city, forKey: "order_city")
+            }
+        }
+    }
+    
+    var zip: String {
+        didSet {
+            if zip.trimmingCharacters(in: .whitespaces).isEmpty {
+                UserDefaults.standard.removeObject(forKey: "order_zip")
+            } else {
+                UserDefaults.standard.set(zip, forKey: "order_zip")
+            }
+        }
+    }
+    
     
     var hasInvalidAddress: Bool {
-        return name.isEmpty || streetAddress.isEmpty || city.isEmpty || zip.isEmpty
+        return name.trimmingCharacters(in: .whitespaces).isEmpty ||
+        streetAddress.trimmingCharacters(in: .whitespaces).isEmpty ||
+        city.trimmingCharacters(in: .whitespaces).isEmpty ||
+        zip.trimmingCharacters(in: .whitespaces).isEmpty
     }
     
     var cost: Decimal {

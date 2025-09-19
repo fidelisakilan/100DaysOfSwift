@@ -53,12 +53,14 @@ struct CheckoutView: View {
         request.httpMethod = "POST"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             let decoded = try JSONDecoder().decode(Order.self, from: data)
             confirmationMessage = "\(decoded.quantity)x added, \(Order.types[decoded.type].lowercased())"
             showConfirmation = true
         } catch {
             print("Error with network \(error.localizedDescription)")
+            confirmationMessage = "Error: \(error.localizedDescription)"
+            showConfirmation = true
         }
         
     }
