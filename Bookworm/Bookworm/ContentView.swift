@@ -3,7 +3,10 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
-    @Query var books: [Book]
+    @Query(sort: [
+        SortDescriptor(\Book.title),
+        SortDescriptor(\Book.author)
+    ]) var books: [Book]
     @State private var showingAddScreen = false
     var body: some View {
         NavigationStack {
@@ -22,18 +25,33 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onDelete(perform: onDelete)
             }
-                .navigationTitle("Bookworm")
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Add Book", systemImage: "plus") {
-                            showingAddScreen.toggle()
-                        }
+            .navigationDestination(for: Book.self) { book in
+                DetailsView(book: book)
+            }
+            .navigationTitle("Bookworm")
+            .toolbar {
+                if !books.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        EditButton()
                     }
                 }
-                .sheet(isPresented: $showingAddScreen) {
-                    AddBookView()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Add Book", systemImage: "plus") {
+                        showingAddScreen.toggle()
+                    }
                 }
+            }
+            .sheet(isPresented: $showingAddScreen) {
+                AddBookView()
+            }
+        }
+    }
+    func onDelete(at offsets: IndexSet) {
+        for offset in offsets {
+            let book = books[offset]
+            modelContext.delete(book)
         }
     }
 }

@@ -43,6 +43,7 @@ struct AddBookView: View {
                     }
                 }
             }
+            .navigationTitle("Add Book")
         }
     }
 }
