@@ -35,15 +35,21 @@ struct AddBookView: View {
                     RatingView(rating: $rating)
                         .buttonStyle(.plain)
                 }
-                Section {
-                    Button("Save") {
+            }
+            .navigationTitle("Add Book")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel", systemImage: "xmark", role: .close) { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save", systemImage: "checkmark",role: .confirm) {
                         let newBook = Book(title: title, author: author, genre: genre,review: review, rating: rating)
                         modelContext.insert(newBook)
                         dismiss()
                     }
+                    .disabled(title == "" || author == "" || review == "")
                 }
             }
-            .navigationTitle("Add Book")
         }
     }
 }

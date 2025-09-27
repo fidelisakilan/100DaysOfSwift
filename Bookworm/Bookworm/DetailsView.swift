@@ -6,29 +6,58 @@ struct DetailsView: View {
     @Environment(\.modelContext) var modelContext
     let book: Book
     @State private var showingAlert = false
+    
+    func onDelete() {
+        modelContext.delete(book)
+        dismiss()
+    }
+    
     var body: some View {
-        ScrollView {
-            ZStack(alignment: .bottomTrailing) {
-                Image(book.genre)
-                    .resizable()
-                    .scaledToFit()
-                
-                Text(book.genre.uppercased())
-                    .font(.caption)
-                    .fontWeight(.black)
-                    .padding(8)
-                    .foregroundStyle(.white)
-                    .background(.black.opacity(0.5))
-                    .clipShape(.capsule)
-                    .offset(x: -5, y: -5)
+        Form {
+            Section {
+                ZStack(alignment: .bottomTrailing) {
+                    Image(book.genre)
+                        .resizable()
+                        .scaledToFit()
+                    
+                    Text(book.genre.uppercased())
+                        .font(.caption)
+                        .fontWeight(.black)
+                        .padding(8)
+                        .foregroundStyle(.white)
+                        .background(.black.opacity(0.5))
+                        .clipShape(.capsule)
+                        .offset(x: -5, y: -5)
+                }
+                .listRowInsets(EdgeInsets())
+                .clipped()
             }
-            Text(book.author)
-                .font(.title)
-                .foregroundStyle(.secondary)
-            Text(book.review)
-                .padding()
-            RatingView(rating: .constant(book.rating))
-                .font(.largeTitle)
+            Section {
+                HStack {
+                    Text("Author:")
+                        .bold()
+                    Spacer()
+                    Text(book.author)
+                }
+                HStack {
+                    Text("Review:")
+                        .bold()
+                    Spacer()
+                    Text(book.review)
+                }
+                HStack {
+                    Text("Date:")
+                        .bold()
+                    Spacer()
+                    Text(book.date,format: .dateTime.day().month(.abbreviated).year())
+                }
+                HStack {
+                    Text("Rating:")
+                        .bold()
+                    Spacer()
+                    RatingView(rating: .constant(book.rating))
+                }
+            }
         }
         .navigationTitle(book.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -45,10 +74,7 @@ struct DetailsView: View {
             }
         }
     }
-    func onDelete() {
-        modelContext.delete(book)
-        dismiss()
-    }
+    
 }
 
 #Preview {
@@ -60,7 +86,8 @@ struct DetailsView: View {
             author: "Test Author",
             genre: "Fantasy",
             review: "This is a sample review",
-            rating: 4)
+            rating: 4,
+        )
         return DetailsView(book: example).modelContainer(container)
     } catch {
         return Text("Failed to create preview \(error.localizedDescription)")
