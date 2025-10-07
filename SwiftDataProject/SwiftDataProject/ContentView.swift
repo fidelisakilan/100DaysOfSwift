@@ -10,33 +10,44 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<User> { user in
-            user.name.localizedStandardContains("i")
-        },
-        sort: \User.name,
-    ) private var users : [User]
+    @State private var sortBy: [SortDescriptor<User>] = [
+        SortDescriptor(\User.name),
+        SortDescriptor(\User.joinDate)
+    ]
+    @State private var showUpcomingOnly = false
     var body: some View {
         NavigationStack {
-            Form {
-                List(users) { user in
-                    Text(user.name)
+            UsersView(minimumDate: showUpcomingOnly ? .now : .distantPast, sortBy: sortBy)
+                .navigationTitle("SwiftData")
+                .toolbar {
+                    Button(showUpcomingOnly ? "Show All": "Show Upcoming") {
+                        showUpcomingOnly.toggle()
+                    }
+                    Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                        Picker("Sort", selection: $sortBy) {
+                            Text("Sort by name").tag([
+                                SortDescriptor(\User.name),
+                                SortDescriptor(\User.joinDate)
+                            ])
+                            Text("Sort by date").tag([
+                                SortDescriptor(\User.joinDate),
+                                SortDescriptor(\User.name)
+                            ])
+                        }
+                    }
+                    Button("Add Samples", systemImage: "plus") {
+                        try? modelContext.delete(model: User.self)
+                        let first = User(name: "Ed Sheeran", city: "London", joinDate: .now.addingTimeInterval(86400 * -10))
+                        let second = User(name: "Taylor Swift", city: "Nashville", joinDate: .now.addingTimeInterval(86400 * -5))
+                        let third = User(name: "Linkin Park", city: "Brooklyn", joinDate: .now.addingTimeInterval(86400 * 10))
+                        let fourth = User(name: "Ado", city: "Tokyo", joinDate:
+                            .now.addingTimeInterval(86400 * 5))
+                        modelContext.insert(first)
+                        modelContext.insert(second)
+                        modelContext.insert(third)
+                        modelContext.insert(fourth)
+                    }
                 }
-            }
-            .navigationTitle("SwiftData")
-            .toolbar {
-                Button("Add Samples", systemImage: "plus") {
-                    try? modelContext.delete(model: User.self)
-                    let first = User(name: "Ed Sheeran", city: "London", joinDate: .now.addingTimeInterval(86400 * -10))
-                    let second = User(name: "Taylor Swift", city: "Nashville", joinDate: .now.addingTimeInterval(86400 * -5))
-                    let third = User(name: "Linkin Park", city: "Brooklyn", joinDate: .now.addingTimeInterval(86400 * 10))
-                    let fourth = User(name: "Ado", city: "Tokyo", joinDate: .now.addingTimeInterval(86400 * 5))
-                    modelContext.insert(first)
-                    modelContext.insert(second)
-                    modelContext.insert(third)
-                    modelContext.insert(fourth)
-                }
-            }
         }
     }
 }
