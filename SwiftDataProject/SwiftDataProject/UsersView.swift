@@ -10,6 +10,7 @@ import SwiftUI
 
 struct UsersView: View {
     @Query var users: [User]
+    @Environment(\.modelContext) var modelContext
     var body: some View {
         List(users) { user in
             HStack {
@@ -24,12 +25,22 @@ struct UsersView: View {
                     .clipShape(.capsule)
             }
         }
+        .onAppear(perform: addSample)
     }
     
     init(minimumDate: Date, sortBy: [SortDescriptor<User>]) {
         _users = Query(filter: #Predicate<User>{ user in
             user.joinDate >= minimumDate
         }, sort: sortBy)
+    }
+    
+    func addSample() {
+        let user = User(name: "Akilan", city: "Dallas", joinDate: .now.addingTimeInterval(86500*5))
+        let job1 = Job(name: "Make plans with Jake", priority: 1)
+        let job2 = Job(name: "Study for exam", priority: 2)
+        modelContext.insert(user)
+        user.jobs?.append(job1)
+        user.jobs?.append(job2)
     }
 }
 

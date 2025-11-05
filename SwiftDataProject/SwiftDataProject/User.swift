@@ -13,7 +13,7 @@ class User {
     var name: String = "Anonymous"
     var city: String = "None"
     var joinDate: Date = Date.now
-    var jobs: [Job]? = [Job]()
+    @Relationship(deleteRule: .cascade) var jobs: [Job]? = [Job]()
     
     var unwrappedJobs: [Job] {
         jobs ?? []
