@@ -10,27 +10,40 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
-    @Query(filter: #Predicate<User> { user in
-        user.name.localizedStandardContains("R")
-    }, sort: \User.name) var users: [User]
+    @State private var showUpcomingDateOnly: Bool = false
+    @State private var sortOrder: [SortDescriptor] = [SortDescriptor(\User.name), SortDescriptor(\User.joinDate),]
     var body: some View {
         NavigationStack {
-            List(users) { user in
-                    Text(user.name)
-            }
+            UsersView(
+                minimumJoinDate: showUpcomingDateOnly ? .now : .distantPast,
+                sortOrder: sortOrder
+            )
             .navigationTitle("Users")
-            .toolbar{
+            .toolbar {
+                Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                    Picker("Sort", selection: $sortOrder) {
+                        Text("Sort by Name").tag([
+                            SortDescriptor(\User.name),
+                            SortDescriptor(\User.joinDate),
+                        ])
+                        Text("Sort by Date").tag([
+                            SortDescriptor(\User.joinDate),
+                            SortDescriptor(\User.name),
+                        ])
+                    }
+                }
+                Button(showUpcomingDateOnly ? "Show Everyone" : "Show Upcoming") {
+                    showUpcomingDateOnly.toggle()
+                }
                 Button("Add Sample", systemImage: "plus") {
-                    try? modelContext.delete(model: User.self)
-                    
-                    let user1 = User(name: "Ed Sheeran", city: "London", joinDate: .now)
-                    let user2 = User(name: "Taylor Swift", city: "Nashville", joinDate: .now)
-                    let user3 = User(name: "Maroon", city: "San Francisco", joinDate: .now)
-                    let user4 = User(name: "Linkin Park", city: "New York", joinDate: .now)
+                    let user1 = User(name: "Piper Chapman", city: "New York", joinDate: .now)
+                    let job1 = Job(name: "Organize sock drawer", priority: 3)
+                    let job2 = Job(name: "Make plans with Alex", priority: 4)
+
                     modelContext.insert(user1)
-                    modelContext.insert(user2)
-                    modelContext.insert(user3)
-                    modelContext.insert(user4)
+
+                    user1.jobs.append(job1)
+                    user1.jobs.append(job2)
                 }
             }
         }
