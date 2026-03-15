@@ -1,209 +1,93 @@
-//
-//  ContentView.swift
-//  iExpense
-//
-//  Created by Fidelis Akilan on 6/21/25.
-//
 import SwiftUI
-
-struct ExpenseItem: Identifiable, Codable {
-    var id = UUID()
-    var name: String
-    var type: String
-    var amount: Double
-    var currency: String
-}
-
-@Observable
-class Expenses {
-var key: String
-    
-    init(key: String) {
-        self.key = key
-        if let encodedItems = UserDefaults.standard.data(forKey: self.key) {
-            if let decodedItems = try? JSONDecoder().decode([ExpenseItem].self, from: encodedItems) {
-                items = decodedItems
-                return
-            }
-        }
-        items = []
-    }
-    
-    var items = [ExpenseItem]() {
-        didSet {
-            if let encoded = try? JSONEncoder().encode(items) {
-                UserDefaults.standard.set(encoded, forKey: key)
-            } else {
-                UserDefaults.standard.removeObject(forKey: key)
-            }
-        }
-    }
-}
-
-struct ExpenseTileView: View {
-    var item: ExpenseItem
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(item.name).font(.headline)
-                Text(item.type).font(.caption)
-            }
-            Spacer()
-            if item.amount <= 10 {
-                Text(item.amount,format: .currency(code: item.currency))
-                    .foregroundColor(.black)
-                    .fontWeight(.bold)
-            } else if item.amount <= 100 {
-                Text(item.amount,format: .currency(code: item.currency))
-                    .foregroundColor(.yellow)
-                    .fontWeight(.bold)
-            } else{
-                Text(item.amount,format: .currency(code: item.currency))
-                    .foregroundColor(.red)
-                    .fontWeight(.bold)
-            }
-        }
-    }
-}
+import SwiftData
 
 struct ContentView : View {
-    @State var personalExpenses = Expenses(key: "personalItems")
-    @State var businessExpenses = Expenses(key: "businessItems")
+    @State private var sortOrder: [SortDescriptor] = [SortDescriptor(\ExpenseItem.name), SortDescriptor(\ExpenseItem.amount)]
+    @State private var filterGroup: String = "All"
     var body: some View {
         NavigationStack {
             List {
-                if !personalExpenses.items.isEmpty {
-                    Section("Personal") {
-                        ForEach(personalExpenses.items) { item in
-                            ExpenseTileView(item: item)
-                        }
-                        .onDelete { offsets in
-                            onDelete(at: offsets, expenses: personalExpenses)
-                        }
-                    }
-                }
-                if !businessExpenses.items.isEmpty {
-                    Section("Work") {
-                        ForEach(businessExpenses.items) { item in
-                            ExpenseTileView(item: item)
-                        }
-                        .onDelete { offsets in
-                            onDelete(at: offsets, expenses: businessExpenses)
-                        }
-                    }
-                }
+                ExpenseView(filter: filterGroup, sortOrder: sortOrder)
             }
             .navigationTitle("iExpense")
             .toolbar {
+                Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                    Picker("Sort", selection: $sortOrder) {
+                        Text("Sort by Name").tag([
+                            SortDescriptor(\ExpenseItem.name),
+                            SortDescriptor(\ExpenseItem.amount)
+                        ])
+                        Text("Sort by Amount").tag([
+                            SortDescriptor(\ExpenseItem.amount),
+                            SortDescriptor(\ExpenseItem.name)
+                        ])
+                    }
+                }
+                Menu("Filter", systemImage: "line.3.horizontal.decrease") {
+                    Picker("Filter", selection: $filterGroup) {
+                        Text("All").tag("All")
+                        Text("Business").tag("Business")
+                        Text("Personal").tag("Personal")
+                    }
+                }
                 NavigationLink("Add Expense") {
-                    AddView(personalExpenses: personalExpenses, businessExpenses: businessExpenses)
+                    AddView()
                 }
             }
         }
     }
-    func onDelete(at offsets: IndexSet, expenses: Expenses) {
-        expenses.items.remove(atOffsets: offsets)
+}
+
+
+struct ExpenseView: View {
+    @Query var expenses: [ExpenseItem]
+    @Environment(\.modelContext) var modelContext
+    var body: some View {
+        if !expenses.isEmpty {
+            ForEach(expenses) { item in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(item.name).font(.headline)
+                        Text(item.type).font(.caption)
+                    }
+                    Spacer()
+                    if item.amount <= 10 {
+                        Text(item.amount,format: .currency(code: item.currency))
+                            .foregroundColor(.black)
+                            .fontWeight(.bold)
+                    } else if item.amount <= 100 {
+                        Text(item.amount,format: .currency(code: item.currency))
+                            .foregroundColor(.yellow)
+                            .fontWeight(.bold)
+                    } else{
+                        Text(item.amount,format: .currency(code: item.currency))
+                            .foregroundColor(.red)
+                            .fontWeight(.bold)
+                    }
+                }
+            }
+            .onDelete { offsets in
+                onDelete(at: offsets)
+            }
+        }
+    }
+    func onDelete(at offsets: IndexSet) {
+        for index in offsets {
+            modelContext.delete(expenses[index])
+        }
+    }
+    
+    init(filter: String, sortOrder: [SortDescriptor<ExpenseItem>]) {
+        if filter == "All" {
+            _expenses = Query(sort: sortOrder)
+        } else {
+            _expenses = Query(filter: #Predicate<ExpenseItem>{item in
+                item.type == filter
+            }, sort: sortOrder)
+        }
     }
 }
 
-//struct User: Codable {
-//    var firstName: String
-//    var lastName: String
-//}
-//
-//struct ContentView: View {
-//    @State private var user = User(firstName: "Maruti", lastName: "Swift")
-//    var body: some View {
-//        Button("Tap me to save") {
-//            let encoder = JSONEncoder()
-//            if let data = try? encoder.encode(user) {
-//                UserDefaults.standard.set(data, forKey: "UserData")
-//            }
-//        }
-//    }
-//}
-
-
-
-
-//struct ContentView: View {
-////    @State private var count = UserDefaults.standard.integer(forKey: "Tap")
-//    @AppStorage("Tap") private var count = 0
-//    var body: some View {
-//        Button("You tapped \(count) times") {
-//            count += 1
-////            UserDefaults.standard.set(count, forKey: "Tap")
-//        }
-//    }
-//}
-
-//struct ContentView: View {
-//    @State var listOfNumbers = [Int]()
-//    @State var currentNumber = 1
-//    var body: some View {
-//        NavigationStack {
-//            VStack {
-//                List {
-//                    ForEach(listOfNumbers,id: \.self){
-//                        Text("Number \($0)")
-//                    }
-//                    .onDelete(perform: onDelete)
-//                }
-//                Button("Add Number") {
-//                    listOfNumbers.append(currentNumber)
-//                    currentNumber += 1
-//                }
-//            }
-//            .toolbar{
-//                EditButton()
-//            }
-//        }
-//    }
-//
-//    func onDelete(at offsets: IndexSet) {
-//        listOfNumbers.remove(atOffsets: offsets)
-//    }
-//}
-
-//struct SecondView: View {
-//    @Environment(\.dismiss) var dismiss
-//    let name = "@eva"
-//    var body: some View {
-//        Button("Dimiss") {
-//            dismiss()
-//        }
-//    }
-//}
-//
-//struct ContentView: View {
-//    @State var showingSheet = false
-//    var body: some View {
-//        Button("Show Sheet"){
-//            showingSheet.toggle()
-//        }
-//        .sheet(isPresented: $showingSheet){
-//            SecondView()
-//        }
-//    }
-//}
-
-
-//@Observable
-//class User {
-//    var firstName = "Bilbo"
-//    var lastName = "Frodo"
-//}
-//struct ContentView: View {
-//    @State private var user = User()
-//    var body: some View {
-//        VStack {
-//            Text("Your name is \(user.firstName) \(user.lastName)")
-//            TextField("First Name", text: $user.firstName)
-//            TextField("Last Name", text: $user.lastName)
-//        }
-//        .padding()
-//    }
-//}
 
 #Preview {
     ContentView()

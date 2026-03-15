@@ -11,7 +11,7 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @State private var showUpcomingDateOnly: Bool = false
-    @State private var sortOrder: [SortDescriptor] = [SortDescriptor(\User.name), SortDescriptor(\User.joinDate),]
+    @State private var sortOrder: [SortDescriptor] = [SortDescriptor(\User.name), SortDescriptor(\User.joinDate)]
     var body: some View {
         NavigationStack {
             UsersView(
