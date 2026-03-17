@@ -6,17 +6,17 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State private var users: [User]? = nil
+    @Environment(\.modelContext) private var modelContext
+    @Query private var users: [User]
     var body: some View {
         NavigationStack {
             VStack {
-                if users != nil {
-                    List(users!) { user in
-                        NavigationLink(value: user){
-                            Text(user.name)
-                        }
+                List(users) { user in
+                    NavigationLink(value: user){
+                        Text(user.name)
                     }
                 }
             }
@@ -30,13 +30,16 @@ struct ContentView: View {
         }
     }
     func callUsersApi() async {
-        if users == nil {
+        if users.isEmpty {
             let url = URL(string: "https://www.hackingwithswift.com/samples/friendface.json")
             do {
                 let (data, _) = try await URLSession.shared.data(from: url!)
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
-                users = try decoder.decode([User].self, from: data)
+                let response = try decoder.decode([User].self, from: data)
+                for model in response {
+                    modelContext.insert(model)
+                }
             } catch {
                 print("Error with network \(error.localizedDescription)")
             }
