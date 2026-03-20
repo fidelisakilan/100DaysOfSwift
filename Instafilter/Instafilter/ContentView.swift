@@ -6,28 +6,49 @@
 //
 
 import SwiftUI
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 struct ContentView: View {
-    @State private var showingConfirmation = false
-    @State private var backgroundColor = Color.white
+    @State private var image: Image?
     var body: some View {
         VStack {
-            Button("Hello, World!") {
-                showingConfirmation.toggle()
-            }
-            .frame(width: 300, height: 300)
-            .background(backgroundColor)
-            .confirmationDialog("Change Background",isPresented: $showingConfirmation) {
-                Button("Red") { backgroundColor = .red }
-                Button("Green") { backgroundColor = .green}
-                Button("Black") { backgroundColor = .black }
-                Button("White") { backgroundColor = .white }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Select a new color.")
+            if image != nil {
+                image?
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                ContentUnavailableView("No Image", systemImage: "swift")
             }
         }
+        .onAppear(perform: loadImage)
         .padding()
+    }
+    func loadImage() {
+        let inputImage = UIImage(resource: .example)
+        let beginImage = CIImage(image: inputImage)
+        
+        let context = CIContext()
+        let currentFilter = CIFilter.pixellate()
+        
+        currentFilter.inputImage = beginImage
+        let amount = 50
+        let inputKeys = currentFilter.inputKeys
+        
+        if inputKeys.contains(kCIInputIntensityKey) {
+            currentFilter.setValue(amount, forKey: kCIInputIntensityKey)
+        }
+        if inputKeys.contains(kCIInputRadiusKey) {
+            currentFilter.setValue(amount, forKey: kCIInputRadiusKey)
+        }
+        if inputKeys.contains(kCIInputScaleKey) {
+            currentFilter.setValue(amount, forKey: kCIInputScaleKey)
+        }
+
+        guard let outputImage = currentFilter.outputImage else { return }
+        guard let cgImage = context.createCGImage(outputImage, from: outputImage.extent) else { return }
+        let uiImage = UIImage(cgImage: cgImage)
+        image = Image(uiImage: uiImage)
     }
 }
 
