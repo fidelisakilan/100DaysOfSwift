@@ -15,7 +15,7 @@ struct Location: Identifiable {
     var name: String
     var coordinate: CLLocationCoordinate2D
 }
-struct ContentView: View {
+struct MapTestView: View {
     @State private var position = MapCameraPosition.region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 51.507222, longitude: -0.1275),
@@ -70,5 +70,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    MapTestView()
 }
