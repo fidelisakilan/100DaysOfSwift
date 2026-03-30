@@ -9,42 +9,59 @@ struct UserLocationView: View {
         )
     )
     @State private var viewModel = ViewModel()
+    @State private var isStandard = true
     var body: some View {
-        if viewModel.isUnlocked {
-            MapReader { proxy in
-                Map(initialPosition: startPosition) {
-                    ForEach(viewModel.locations) { location in
-                        Annotation(location.name, coordinate: location.coordinate) {
-                            Image(systemName: "star.circle")
-                                .resizable()
-                                .foregroundStyle(.red)
-                                .background(.white)
-                                .frame(width: 44, height: 44)
-                                .clipShape(.circle)
-                                .onLongPressGesture(minimumDuration: 0.1) {
-                                    viewModel.selectedPoint = location
-                                }
+        VStack {
+            if viewModel.isUnlocked {
+                MapReader { proxy in
+                    Map(initialPosition: startPosition) {
+                        ForEach(viewModel.locations) { location in
+                            Annotation(location.name, coordinate: location.coordinate) {
+                                Image(systemName: "star.circle")
+                                    .resizable()
+                                    .foregroundStyle(.red)
+                                    .background(.white)
+                                    .frame(width: 44, height: 44)
+                                    .clipShape(.circle)
+                                    .onLongPressGesture(minimumDuration: 0.1) {
+                                        viewModel.selectedPoint = location
+                                    }
+                            }
+                        }
+                    }
+                    .mapStyle(isStandard ? .standard : .hybrid)
+                    .onTapGesture { position in
+                        if let coordinate = proxy.convert(position, from: .local) {
+                            viewModel.addLocation(at: coordinate)
+                        }
+                    }
+                    .sheet(item: $viewModel.selectedPoint) { point in
+                        EditLocationView(location: point) {
+                            viewModel.update(location: $0)
                         }
                     }
                 }
-                .mapStyle(.hybrid)
-                .onTapGesture { position in
-                    if let coordinate = proxy.convert(position, from: .local) {
-                        viewModel.addLocation(at: coordinate)
-                    }
+                Button("Switch Style") {
+                    isStandard.toggle()
                 }
-                .sheet(item: $viewModel.selectedPoint) { point in
-                    EditLocationView(location: point) {
-                        viewModel.update(location: $0)
-                    }
-                }
+            } else {
+                Button("Authenticate", action: viewModel.authenticate)
+                    .padding()
+                    .background(.blue)
+                    .foregroundStyle(.white)
+                    .clipShape(.capsule)
             }
-        } else {
-            Button("Authenticate", action: viewModel.authenticate)
-                .padding()
-                .background(.blue)
-                .foregroundStyle(.white)
-                .clipShape(.capsule)
+        }
+        .alert(isPresented: $viewModel.showError) {
+            Alert(
+                title: Text("Error Authenticating"),
+                primaryButton: .default(
+                    Text("Try Again"),
+                    action: viewModel.authenticate,
+                ), secondaryButton: .default(
+                    Text("Dismiss"),
+                ) { }
+            )
         }
     }
 }

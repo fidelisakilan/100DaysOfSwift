@@ -16,6 +16,8 @@ extension UserLocationView {
         var locations = [CLocation]()
         var selectedPoint: CLocation?
         let savePath = URL.documentsDirectory.appending(path: "SavedPlaces")
+        var showError = false
+
         
         init() {
             do {
@@ -37,13 +39,13 @@ extension UserLocationView {
                         self.isUnlocked = true
                         print("is unlocked")
                     } else {
+                        self.showError.toggle()
                         print("Failed to unlock \(error?.localizedDescription)")
-                        // failed to authenticate
                     }
                 }
             } else {
+                self.showError.toggle()
                 print("Failed to unlock \(error?.localizedDescription)")
-                //no biometrics
             }
             
         }
