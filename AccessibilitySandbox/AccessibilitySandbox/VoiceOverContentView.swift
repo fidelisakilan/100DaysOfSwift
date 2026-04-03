@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct VoiceOverContentView: View {
     private var pictures = [
         "ingmar-bpJUsjxnxsQ",
         "leon-rohrwild-5APKpFvda8I",
