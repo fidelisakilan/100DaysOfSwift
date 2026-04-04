@@ -65,6 +65,9 @@ struct ExpenseView: View {
                             .fontWeight(.bold)
                     }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Name: \(item.name), Type: \(item.type)")
+                .accessibilityValue(String(item.amount))
             }
             .onDelete { offsets in
                 onDelete(at: offsets)

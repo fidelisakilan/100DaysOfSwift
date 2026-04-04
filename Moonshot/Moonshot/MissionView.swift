@@ -72,15 +72,20 @@ struct MissionView: View {
     var body: some View {
         ScrollView {
             VStack {
-                Image(mission.logoName)
-                    .resizable()
-                    .scaledToFit()
-                    .containerRelativeFrame(.horizontal) { width, axis in
-                        width * 0.6
-                    }
-                Text(mission.formattedLaunchDate1)
-                    .font(.title3)
-                    .foregroundStyle(.gray)
+                VStack {
+                    Image(mission.logoName)
+                        .resizable()
+                        .scaledToFit()
+                        .containerRelativeFrame(.horizontal) { width, axis in
+                            width * 0.6
+                        }
+                    Text(mission.formattedLaunchDate1)
+                        .font(.title3)
+                        .foregroundStyle(.gray)
+                }
+                .accessibilityElement()
+                .accessibilityLabel(mission.displayName)
+                .accessibilityValue("Launched at \(mission.formattedLaunchDate1)")
                 CustomDivider()
                 VStack(alignment: .leading) {
                     Text("Mission Highlights")
@@ -89,14 +94,19 @@ struct MissionView: View {
                     Text(mission.description)
                 }
                 .padding(.horizontal)
+                .accessibilityElement()
+                .accessibilityLabel("Mission Highlights")
+                .accessibilityValue(mission.description)
                 CustomDivider()
+            }
+            VStack {
                 Text("Crew")
                     .font(.title.bold())
                     .padding(.bottom, 5)
                     .frame(maxWidth: .infinity,alignment: .leading)
                     .padding(.horizontal)
+                CrewListView(crew: crew)
             }
-            CrewListView(crew: crew)
         }
         .navigationTitle(mission.displayName)
         .navigationBarTitleDisplayMode(.inline)

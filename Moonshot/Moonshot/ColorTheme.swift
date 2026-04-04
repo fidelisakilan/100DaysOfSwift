@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 extension ShapeStyle where Self == Color {
     static var darkBg: Color {
