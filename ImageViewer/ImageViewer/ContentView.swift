@@ -1,9 +1,11 @@
 import SwiftUI
+import CoreLocation
 
 struct ContentView: View {
     @State private var showUploadSheet = false
     @State private var userImages = [Post]()
     let savePath = URL.documentsDirectory.appending(path: "SavedPlaces")
+    let locationFetcher = LocationFetcher()
     var body: some View {
         NavigationStack {
             Form {
@@ -30,11 +32,25 @@ struct ContentView: View {
             .navigationTitle("ImageViewer")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Upload Image", systemImage: "plus") { showUploadSheet.toggle() }
+                    Button("Upload Image", systemImage: "plus") {
+                        locationFetcher.start()
+                        if locationFetcher.lastKnownLocation != nil {
+                            showUploadSheet.toggle()
+                        }
+                    }
                 }
             }
         }
-        .sheet(isPresented: $showUploadSheet) { UploadImageView() { post in save(post) } }
+        .sheet(isPresented: $showUploadSheet) { UploadImageView() {
+            name, imageData in
+            let latitude = locationFetcher.lastKnownLocation?.latitude
+            let longitude = locationFetcher.lastKnownLocation?.longitude
+            if latitude != nil && longitude != nil {
+                let newPost = Post(id: UUID(), name: name, imageData: imageData, latitude: latitude!, longitude: longitude!)
+                save(newPost)
+            }
+        }
+        }
         .onAppear { loadAllImages() }
     }
     

@@ -14,7 +14,7 @@ struct UploadImageView: View {
     @State private var imageData: Data? = nil
     @State private var name = ""
     @Environment(\.dismiss) var dismiss
-    let onSave: (Post) -> Void
+    let onSave: (String, Data) -> Void
     
     var body: some View {
         NavigationStack {
@@ -57,7 +57,7 @@ struct UploadImageView: View {
     
     func uploadImage() {
         if name != "" && imageData != nil {
-            onSave(Post(id: UUID(), name: name, imageData: imageData!))
+            onSave(name, imageData!)
             dismiss()
         }
     }
@@ -77,5 +77,5 @@ struct UploadImageView: View {
 }
 
 #Preview {
-    UploadImageView() { _ in }
+    UploadImageView() { _,_ in }
 }
