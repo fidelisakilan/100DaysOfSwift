@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import UserNotifications
+import SamplePackage
 
 struct ContentView: View {
     let users = ["Tohro", "Yuki", "Kyo", "Momiji"]
@@ -13,17 +15,36 @@ struct ContentView: View {
     @State private var selectedTab = "One"
     @State private var output = ""
     @State private var backgroundColor = Color.white
+    
+    let possibleNumbers = 1...60
+    var sequence: String {
+        let lottery = possibleNumbers.random(7).sorted()
+        let strings = lottery.map(String.init)
+        return strings.formatted()
+    }
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
                 VStack {
                     List(users, id: \.self, selection: $selection) { user in
                         Text(user)
+                            .swipeActions {
+                                Button("Delete",systemImage: "minus.circle", role: .destructive) {
+                                    print("Delete")
+                                }
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button("Pin", systemImage: "pin") {
+                                    print("Pinning")
+                                }
+                                .tint(.orange)
+                            }
                     }
                     Spacer()
                     Spacer()
                     if selection.isEmpty == false {
                         Text("Selected value: \(selection.formatted())")
+                            .padding()
                     }
                 }
                 .toolbar {
@@ -73,6 +94,34 @@ struct ContentView: View {
                 Label("Three", systemImage: "square")
             }
             .tag("three")
+            VStack {
+                Text(sequence)
+                    .padding()
+                Button("Request Permission") {
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
+                        if success {
+                            print("All Set")
+                        } else if let error {
+                            print("error: \(error.localizedDescription)")
+                        }
+                    }
+                }
+                Button("Schedule Notification") {
+                    let content = UNMutableNotificationContent()
+                    content.title = "Feed the cat"
+                    content.subtitle = "It looks hungry"
+                    content.sound = .default
+                    
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                    UNUserNotificationCenter.current().add(request)
+                    
+                }
+            }
+            .tabItem {
+                Label("Four", systemImage: "triangle")
+            }
+            .tag("four")
         }
         .task {
             await fetchApi()
